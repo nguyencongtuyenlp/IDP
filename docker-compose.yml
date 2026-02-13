@@ -1,0 +1,37 @@
+version: "3.8"
+
+services:
+  # CPU-only deployment
+  dococr-cpu:
+    build:
+      context: .
+      dockerfile: Dockerfile.cpu
+    ports:
+      - "7860:7860"
+    volumes:
+      - ./data:/app/data
+    environment:
+      - DEVICE=cpu
+    profiles:
+      - cpu
+
+  # GPU deployment (requires nvidia-docker)
+  dococr-gpu:
+    build:
+      context: .
+      dockerfile: Dockerfile.gpu
+    ports:
+      - "7860:7860"
+    volumes:
+      - ./data:/app/data
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [ gpu ]
+    environment:
+      - DEVICE=cuda
+    profiles:
+      - gpu

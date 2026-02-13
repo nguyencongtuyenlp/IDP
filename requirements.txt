@@ -1,0 +1,27 @@
+# ==============================================================================
+# Offline Document OCR Extractor — CPU Dependencies
+# ==============================================================================
+
+# Core OCR
+paddlepaddle==2.6.2           # PaddlePaddle CPU (base framework)
+paddleocr>=2.7.0              # PaddleOCR (detection + recognition)
+
+# Image processing
+opencv-python-headless>=4.8   # OpenCV (headless for Docker)
+Pillow>=10.0                  # Image I/O, EXIF handling
+numpy>=1.24
+
+# PDF support
+PyMuPDF>=1.23                 # PDF to image conversion
+
+# UI
+gradio>=4.0                   # Web UI framework
+
+# System monitoring
+psutil>=5.9                   # RAM/CPU monitoring
+
+# Config
+PyYAML>=6.0
+
+# Testing
+pytest>=7.0

@@ -1,0 +1,35 @@
+# ============================================================================
+# Offline Document OCR Extractor — Configuration
+# ============================================================================
+
+# Device settings
+device:
+  mode: "auto"              # auto / cuda / cpu
+  quality: "balanced"       # fast / balanced / accurate
+
+# OCR settings
+ocr:
+  lang: "vi"                # Language: vi, en, ch, ja, ko, ...
+  confidence_threshold: 0.3
+  denoise: false
+
+# Preprocessing
+preprocess:
+  max_image_size: 1280
+  auto_rotate: true
+  deskew: true
+
+# PDF settings
+pdf:
+  dpi: 200
+  max_pages: 50
+
+# Paths
+paths:
+  input_dir: "data/input"
+  output_dir: "data/output"
+
+# Logging
+logging:
+  level: "INFO"
+  file: "logs/dococr.log"

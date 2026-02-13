@@ -1,0 +1,28 @@
+# ============================================
+# Dockerfile.gpu — NVIDIA CUDA build
+# ============================================
+FROM nvidia/cuda:11.8.0-runtime-ubuntu22.04
+
+WORKDIR /app
+
+# System deps
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    python3.10 python3-pip \
+    libgl1-mesa-glx \
+    libglib2.0-0 \
+    libgomp1 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Python deps
+COPY requirements-gpu.txt .
+RUN pip3 install --no-cache-dir -r requirements-gpu.txt
+
+# App
+COPY . .
+
+ENV GRADIO_SERVER_NAME="0.0.0.0"
+ENV GRADIO_SERVER_PORT="7860"
+
+EXPOSE 7860
+
+CMD ["python3", "app.py", "--device", "cuda"]
