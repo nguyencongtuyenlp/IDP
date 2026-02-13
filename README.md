@@ -27,6 +27,8 @@ Image/PDF → Preprocessor → PaddleOCR (Detection) → VietOCR (Recognition) �
               └─ Denoise
 ```
 
+> **VietOCR works best with modern fonts** (Arial, Roboto, sans-serif). For classical serif fonts, accuracy may be lower (~70-80%). Consider using `--no-vietocr` flag for serif-heavy documents.
+
 ## 🚀 Quick Start
 
 ### Install
