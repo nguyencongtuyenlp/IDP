@@ -6,6 +6,9 @@
 paddlepaddle==2.6.2           # PaddlePaddle CPU (base framework)
 paddleocr>=2.7.0              # PaddleOCR (detection + recognition)
 
+# Vietnamese OCR (recognition with diacritical marks)
+vietocr>=0.3.5                # VietOCR Transformer (Vietnamese recognition)
+
 # Image processing
 opencv-python-headless>=4.8   # OpenCV (headless for Docker)
 Pillow>=10.0                  # Image I/O, EXIF handling

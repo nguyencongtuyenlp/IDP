@@ -31,10 +31,11 @@ ENGINE: OCREngine = None
 POST: Postprocessor = None
 
 
-def init_engine(device: str = "auto", mode: str = "balanced", lang: str = "vi"):
+def init_engine(device: str = "auto", mode: str = "balanced", lang: str = "vi",
+                use_vietocr: bool = True):
     """Initialize OCR engine globally."""
     global ENGINE, POST
-    ENGINE = OCREngine(device=device, mode=mode, lang=lang)
+    ENGINE = OCREngine(device=device, mode=mode, lang=lang, use_vietocr=use_vietocr)
     POST = Postprocessor(output_dir=tempfile.mkdtemp())
 
 
@@ -44,6 +45,7 @@ def process_upload(
     mode_choice: str,
     confidence: float,
     show_boxes: bool,
+    use_vietocr: bool,
 ):
     """Main processing function for Gradio UI."""
     global ENGINE, POST
@@ -54,11 +56,12 @@ def process_upload(
     file_path = file if isinstance(file, str) else file.name
     filename = Path(file_path).name
 
-    # Reinitialize engine if device/mode changed
+    # Reinitialize engine if settings changed
     if (ENGINE is None
             or ENGINE.device_mgr.requested_device != device_choice
-            or ENGINE.device_mgr.mode != mode_choice):
-        init_engine(device=device_choice, mode=mode_choice)
+            or ENGINE.device_mgr.mode != mode_choice
+            or ENGINE.use_vietocr != use_vietocr):
+        init_engine(device=device_choice, mode=mode_choice, use_vietocr=use_vietocr)
 
     start = time.perf_counter()
 
@@ -182,6 +185,7 @@ def build_ui():
                     label="🔍 Confidence Threshold",
                 )
                 show_boxes = gr.Checkbox(value=True, label="📦 Show Bounding Boxes")
+                use_vietocr = gr.Checkbox(value=True, label="🇻🇳 VietOCR (tiếng Việt có dấu)")
 
                 process_btn = gr.Button("🚀 Extract Text", variant="primary", size="lg")
 
@@ -207,7 +211,7 @@ def build_ui():
         # Event handler
         process_btn.click(
             fn=process_upload,
-            inputs=[file_input, device_dropdown, mode_dropdown, confidence_slider, show_boxes],
+            inputs=[file_input, device_dropdown, mode_dropdown, confidence_slider, show_boxes, use_vietocr],
             outputs=[preview_image, status_bar, text_output, json_output, download_files],
         )
 

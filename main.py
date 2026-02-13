@@ -110,6 +110,11 @@ def main():
                         help="Quality mode (default: balanced)")
     parser.add_argument("--lang", default="vi", help="OCR language (default: vi)")
     parser.add_argument("--denoise", action="store_true", help="Enable noise reduction")
+    parser.add_argument("--no-vietocr", action="store_true",
+                        help="Disable VietOCR (use PaddleOCR recognition only)")
+    parser.add_argument("--vietocr-model", default="vgg_transformer",
+                        choices=["vgg_transformer", "vgg_seq2seq"],
+                        help="VietOCR model (default: vgg_transformer)")
     parser.add_argument("--verbose", "-v", action="store_true", help="Debug logging")
 
     args = parser.parse_args()
@@ -125,7 +130,12 @@ def main():
     logger.info("🚀 Offline Document OCR Extractor")
     logger.info("=" * 60)
 
-    engine = OCREngine(device=args.device, mode=args.mode, lang=args.lang, denoise=args.denoise)
+    engine = OCREngine(
+        device=args.device, mode=args.mode, lang=args.lang,
+        denoise=args.denoise,
+        use_vietocr=not args.no_vietocr,
+        vietocr_model=args.vietocr_model,
+    )
     post = Postprocessor(output_dir=args.output)
 
     # Collect files

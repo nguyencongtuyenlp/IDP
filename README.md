@@ -7,7 +7,8 @@
 
 ## ✨ Features
 
-- 🔤 **Multi-language OCR**: Vietnamese, English, Chinese, Japanese, Korean
+- 🇻🇳 **Vietnamese OCR** — VietOCR Transformer for full diacritical marks (dấu)
+- 🚀 **Hybrid Pipeline**: PaddleOCR detection + VietOCR recognition
 - ⚡ **GPU acceleration** with automatic CPU fallback
 - 🎯 **3 quality modes**: fast / balanced / accurate
 - 📄 **PDF support**: Multi-page, auto-convert to images
@@ -19,11 +20,11 @@
 ## 🏗️ Architecture
 
 ```
-Input (image/PDF) → Preprocessor → PaddleOCR → Postprocessor → Output
-                     ├── EXIF rotate   ├── Detection      ├── Text (.txt)
-                     ├── Deskew        ├── Recognition     ├── JSON (.json)
-                     ├── Resize        └── Angle classify  ├── Annotated (.png)
-                     └── Denoise                           └── Searchable PDF (v2)
+Image/PDF → Preprocessor → PaddleOCR (Detection) → VietOCR (Recognition) → Postprocessor
+              ├─ EXIF rotate   └─ bbox detection       └─ Việt text + dấu    ├─ Text (.txt)
+              ├─ Deskew                                                      ├─ JSON (.json)
+              ├─ Resize        Fallback: PaddleOCR-only for non-Vietnamese   └─ Annotated (.png)
+              └─ Denoise
 ```
 
 ## 🚀 Quick Start
@@ -52,6 +53,12 @@ python main.py --input doc.jpg --device cpu --mode fast
 
 # PDF
 python main.py --input document.pdf
+
+# Disable VietOCR (PaddleOCR recognition only)
+python main.py --input photo.jpg --no-vietocr
+
+# Fast VietOCR model (seq2seq)
+python main.py --input photo.jpg --vietocr-model vgg_seq2seq
 ```
 
 ### Gradio UI
@@ -103,7 +110,7 @@ python benchmark.py --input data/input/ --compare
 
 ```
 pytest tests/ -v
-# 81 passed in 6.59s
+# 93 passed in 19.14s
 ```
 
 ## 📁 Project Structure
@@ -153,7 +160,7 @@ Original image with drawn bounding boxes and text labels.
 - Python 3.9+
 - CUDA 11.8+ (optional, for GPU acceleration)
 - Tested: NVIDIA T4, GTX 1650, CPU-only
-- 81 unit tests (pytest)
+- 93 unit tests (pytest)
 
 ## 📄 License
 

@@ -1,11 +1,15 @@
 """
-OCR Engine — PaddleOCR Wrapper with GPU/CPU Fallback.
+OCR Engine — PaddleOCR + VietOCR Hybrid Pipeline.
 
-Wraps PaddleOCR for Vietnamese + English document OCR.
-Supports GPU acceleration with automatic CPU fallback.
+Hybrid architecture for Vietnamese OCR with full diacritical marks:
+    - PaddleOCR → text detection (bounding boxes)
+    - VietOCR  → text recognition (Vietnamese with dấu)
+
+Fallback: PaddleOCR-only for non-Vietnamese or when VietOCR unavailable.
 
 Features:
     - Multi-language support (vi, en, ch, ja, ko, ...)
+    - VietOCR Transformer for accurate Vietnamese recognition
     - GPU/CPU auto-detection
     - Configurable quality presets
     - Structured output: List[OCRResult]
@@ -57,9 +61,12 @@ class OCREngine:
         mode: str = "balanced",
         lang: str = "vi",
         denoise: bool = False,
+        use_vietocr: bool = True,
+        vietocr_model: str = "vgg_transformer",
     ) -> None:
         self.device_mgr = DeviceManager(device=device, mode=mode)
         self.lang = lang
+        self.use_vietocr = use_vietocr and lang == "vi"
         self.preprocessor = Preprocessor(
             max_size=self.device_mgr.preset.max_image_size,
             denoise=denoise,
@@ -67,7 +74,10 @@ class OCREngine:
             deskew=True,
         )
         self._ocr = None
+        self._vietocr = None
         self._init_paddle()
+        if self.use_vietocr:
+            self._init_vietocr(vietocr_model)
 
     def _init_paddle(self) -> None:
         """Initialize PaddleOCR with current device/mode settings."""
@@ -75,15 +85,46 @@ class OCREngine:
 
         paddle_kwargs = self.device_mgr.get_paddle_kwargs()
 
-        logger.info("📦 Initializing PaddleOCR (lang=%s, gpu=%s)...",
-                     self.lang, paddle_kwargs["use_gpu"])
-
-        self._ocr = PaddleOCR(
-            lang=self.lang,
-            show_log=False,
-            **paddle_kwargs,
-        )
+        if self.use_vietocr:
+            # Detection-only mode: PaddleOCR just finds text boxes
+            logger.info("📦 Initializing PaddleOCR [detection-only] (gpu=%s)...",
+                         paddle_kwargs["use_gpu"])
+            self._ocr = PaddleOCR(
+                lang=self.lang,
+                show_log=False,
+                rec=False,  # Disable PaddleOCR recognition
+                **paddle_kwargs,
+            )
+        else:
+            # Full mode: PaddleOCR handles both detection + recognition
+            logger.info("📦 Initializing PaddleOCR [full] (lang=%s, gpu=%s)...",
+                         self.lang, paddle_kwargs["use_gpu"])
+            self._ocr = PaddleOCR(
+                lang=self.lang,
+                show_log=False,
+                **paddle_kwargs,
+            )
         logger.info("✅ PaddleOCR ready")
+
+    def _init_vietocr(self, model_name: str) -> None:
+        """Initialize VietOCR for Vietnamese text recognition."""
+        try:
+            from src.vietocr_wrapper import VietOCRWrapper
+
+            vietocr_device = "cuda" if self.device_mgr.use_gpu else "cpu"
+            self._vietocr = VietOCRWrapper(
+                model_name=model_name,
+                device=vietocr_device,
+            )
+            logger.info("✅ VietOCR ready (model=%s)", model_name)
+        except ImportError:
+            logger.warning(
+                "⚠️ VietOCR not installed. Falling back to PaddleOCR recognition. "
+                "Install: pip install vietocr"
+            )
+            self.use_vietocr = False
+            # Reinit PaddleOCR in full mode
+            self._init_paddle()
 
     # ========================================================================
     # MAIN PROCESSING
@@ -110,8 +151,64 @@ class OCREngine:
         else:
             image = image_input
 
-        # Run PaddleOCR
-        logger.info("🔍 Running OCR...")
+        if self.use_vietocr and self._vietocr is not None:
+            return self._process_hybrid(image, confidence_threshold)
+        else:
+            return self._process_paddle_only(image, confidence_threshold)
+
+    def _process_hybrid(
+        self,
+        image: np.ndarray,
+        confidence_threshold: float,
+    ) -> List[OCRResult]:
+        """Hybrid mode: PaddleOCR detection + VietOCR recognition."""
+        from src.vietocr_wrapper import VietOCRWrapper
+
+        logger.info("🔍 Running hybrid OCR (PaddleOCR detect → VietOCR recognize)...")
+
+        # Step 1: PaddleOCR detection only
+        raw_results = self._ocr.ocr(image, rec=False, cls=self.device_mgr.preset.use_angle_cls)
+
+        results = []
+        if raw_results and raw_results[0]:
+            bboxes = raw_results[0]  # List of bounding boxes
+
+            # Step 2: Crop each text region
+            crops = []
+            valid_bboxes = []
+            for bbox in bboxes:
+                try:
+                    bbox_float = [[float(p[0]), float(p[1])] for p in bbox]
+                    crop = VietOCRWrapper.crop_text_region(image, bbox_float)
+                    if crop.size > 0:
+                        crops.append(crop)
+                        valid_bboxes.append(bbox_float)
+                except Exception:
+                    continue
+
+            # Step 3: VietOCR recognition on all crops
+            if crops:
+                texts = self._vietocr.predict_batch(crops)
+
+                for bbox, text in zip(valid_bboxes, texts):
+                    text = text.strip()
+                    if text:
+                        results.append(OCRResult(
+                            bbox=bbox,
+                            text=text,
+                            confidence=0.95,  # VietOCR doesn't return confidence
+                        ))
+
+        logger.info("📝 Detected %d text regions (VietOCR hybrid)", len(results))
+        return results
+
+    def _process_paddle_only(
+        self,
+        image: np.ndarray,
+        confidence_threshold: float,
+    ) -> List[OCRResult]:
+        """PaddleOCR-only mode: detection + recognition."""
+        logger.info("🔍 Running OCR (PaddleOCR only)...")
         raw_results = self._ocr.ocr(image, cls=self.device_mgr.preset.use_angle_cls)
 
         # Parse results: PaddleOCR returns [ [ [bbox, (text, conf)], ... ] ]
@@ -223,4 +320,7 @@ class OCREngine:
     def cleanup(self) -> None:
         """Release OCR engine resources."""
         self._ocr = None
+        if self._vietocr is not None:
+            self._vietocr.cleanup()
+            self._vietocr = None
         logger.info("🧹 OCR engine released")

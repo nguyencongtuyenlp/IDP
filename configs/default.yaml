@@ -13,6 +13,11 @@ ocr:
   confidence_threshold: 0.3
   denoise: false
 
+# VietOCR (Vietnamese text recognition with diacritical marks)
+vietocr:
+  enabled: true             # Use VietOCR for Vietnamese text recognition
+  model: "vgg_transformer"  # vgg_transformer (accurate) / vgg_seq2seq (fast)
+
 # Preprocessing
 preprocess:
   max_image_size: 1280
