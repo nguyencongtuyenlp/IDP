@@ -158,8 +158,16 @@ class OCREngine:
 
         logger.info("🔍 Running hybrid OCR (PaddleOCR detect → VietOCR recognize)...")
 
-        # Step 1: PaddleOCR detection only (cls=False required when rec=False)
-        raw_results = self._ocr.ocr(image, rec=False, cls=False)
+        try:
+            # Step 1: PaddleOCR detection only (cls=False required when rec=False)
+            raw_results = self._ocr.ocr(image, rec=False, cls=False)
+        except (ValueError, AttributeError, TypeError) as e:
+            # PaddleOCR version incompatibility
+            logger.warning(
+                "⚠️ PaddleOCR detection-only failed (%s). "
+                "Falling back to full mode (no VietOCR).", str(e)[:60]
+            )
+            return self._process_paddle_only(image, confidence_threshold)
 
         results = []
         if raw_results and raw_results[0]:
