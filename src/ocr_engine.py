@@ -85,25 +85,17 @@ class OCREngine:
 
         paddle_kwargs = self.device_mgr.get_paddle_kwargs()
 
-        if self.use_vietocr:
-            # Detection-only mode: PaddleOCR just finds text boxes
-            logger.info("📦 Initializing PaddleOCR [detection-only] (gpu=%s)...",
-                         paddle_kwargs["use_gpu"])
-            self._ocr = PaddleOCR(
-                lang=self.lang,
-                show_log=False,
-                rec=False,  # Disable PaddleOCR recognition
-                **paddle_kwargs,
-            )
-        else:
-            # Full mode: PaddleOCR handles both detection + recognition
-            logger.info("📦 Initializing PaddleOCR [full] (lang=%s, gpu=%s)...",
-                         self.lang, paddle_kwargs["use_gpu"])
-            self._ocr = PaddleOCR(
-                lang=self.lang,
-                show_log=False,
-                **paddle_kwargs,
-            )
+        # Always init PaddleOCR in full mode; detection-only is controlled
+        # at call time via ocr(rec=False, cls=False)
+        mode_label = "detection-only" if self.use_vietocr else "full"
+        logger.info("📦 Initializing PaddleOCR [%s] (lang=%s, gpu=%s)...",
+                     mode_label, self.lang, paddle_kwargs["use_gpu"])
+
+        self._ocr = PaddleOCR(
+            lang=self.lang,
+            show_log=False,
+            **paddle_kwargs,
+        )
         logger.info("✅ PaddleOCR ready")
 
     def _init_vietocr(self, model_name: str) -> None:
@@ -166,8 +158,8 @@ class OCREngine:
 
         logger.info("🔍 Running hybrid OCR (PaddleOCR detect → VietOCR recognize)...")
 
-        # Step 1: PaddleOCR detection only
-        raw_results = self._ocr.ocr(image, rec=False, cls=self.device_mgr.preset.use_angle_cls)
+        # Step 1: PaddleOCR detection only (cls=False required when rec=False)
+        raw_results = self._ocr.ocr(image, rec=False, cls=False)
 
         results = []
         if raw_results and raw_results[0]:
