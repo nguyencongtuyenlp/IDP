@@ -21,11 +21,9 @@
 
 ### Gradio Web Interface
 
-![Gradio UI Screenshot](assets/cap.png)
+![Gradio UI Demo](assets/cap.png)
 
-### Watch Demo Video
-
-https://github.com/user-attachments/assets/demo.mp4
+**[📹 Watch Demo Video](assets/demo.mp4)** (Click to download)
 
 > Upload → OCR → Download results in seconds. Supports Vietnamese with full diacritical marks!
 
