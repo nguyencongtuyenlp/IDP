@@ -43,3 +43,6 @@ htmlcov/
 # Misc
 *.whl
 *.tar.gz
+
+# Assets (demo files tracked, but keep directory)
+# assets/ is tracked for demo.mp4 and cap.png
