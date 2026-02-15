@@ -23,9 +23,11 @@
 
 ![Gradio UI Demo](assets/cap.png)
 
-**[📹 Watch Demo Video](assets/demo.mp4)** (Click to download)
+### 🎬 Watch Demo Video
 
-> Upload → OCR → Download results in seconds. Supports Vietnamese with full diacritical marks!
+https://private-user-images.githubusercontent.com/220441399/550175756-53a09790-76ba-489b-bafe-e1b3c820e119.mp4?jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3NzExNzMzNjksIm5iZiI6MTc3MTE3MzA2OSwicGF0aCI6Ii8yMjA0NDEzOTkvNTUwMTc1NzU2LTUzYTA5NzkwLTc2YmEtNDg5Yi1iYWZlLWUxYjNjODIwZTExOS5tcDQ_WC1BbXotQWxnb3JpdGhtPUFXUzQtSE1BQy1TSEEyNTYmWC1BbXotQ3JlZGVudGlhbD1BS0lBVkNPRFlMU0E1M1BRSzRaQSUyRjIwMjYwMjE1JTJGdXMtZWFzdC0xJTJGczMlMkZhd3M0X3JlcXVlc3QmWC1BbXotRGF0ZT0yMDI2MDIxNVQxNjMxMDlaJlgtQW16LUV4cGlyZXM9MzAwJlgtQW16LVNpZ25hdHVyZT1kNzJiMTQ0MDc4MWNiNzAzMzRmZTM0YTA3ODNjYTYxMDk0NThhMmU3ZmUxMjgzMzQ5MDQwYjg2NTI1Zjg5YWRhJlgtQW16LVNpZ25lZEhlYWRlcnM9aG9zdCJ9.QeS-o5sjhnQOqDeyMcrRLxY8yRsLONuyeEzyFy7VnEg
+
+> **Upload → OCR → Download** results in seconds. Supports Vietnamese with full diacritical marks!
 
 ---
 
