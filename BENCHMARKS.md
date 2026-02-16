@@ -1,6 +1,8 @@
 # 📊 Performance Benchmarks
 
-Detailed benchmark results for **Offline Document OCR Extractor**.
+Detailed benchmark results for **Offline Document OCR Extractor** (Work in Progress).
+
+> **⚠️ Important:** Confidence scores shown are model-reported values, not ground-truth accuracy measurements.
 
 ## Test Environment
 
@@ -22,8 +24,8 @@ Detailed benchmark results for **Offline Document OCR Extractor**.
 
 ### Results
 
-| Device | Mode | Image | Time | Regions | Confidence | VRAM |
-|--------|------|-------|------|---------|------------|------|
+| Device | Mode | Image | Time | Regions | Avg Confidence | VRAM |
+|--------|------|-------|------|---------|----------------|------|
 | **NVIDIA T4** | Balanced | tho.jpg | **180ms** | 9 | 96.6% | 1.8GB |
 | **NVIDIA T4** | Balanced | hihi.jpg | **245ms** | 13 | 95.5% | 1.9GB |
 | **NVIDIA T4** | Balanced | cap.png | **252ms** | 15 | 95.0% | 2.1GB |
@@ -33,15 +35,17 @@ Detailed benchmark results for **Offline Document OCR Extractor**.
 
 **GPU Speedup: 4.4x faster on average**
 
-## VietOCR Accuracy Analysis
+## VietOCR vs PaddleOCR Analysis
+
+> **⚠️ Important:** Numbers below are **model confidence scores**, not ground-truth accuracy with labeled data.
 
 ### Modern Sans-serif Fonts (Arial, Roboto, Helvetica)
 
 | Metric | PaddleOCR Only | VietOCR Hybrid | Improvement |
 |--------|---------------|----------------|-------------|
-| **Character Accuracy** | 85% ❌ | **95%** ✅ | +10% |
-| **Diacritical Marks** | 0% missing | **100%** preserved | +100% |
-| **Word Error Rate** | 15% | **5%** | -10% |
+| **Avg Confidence Score** | ~85% ❌ | **~95%** ✅ | +10% |
+| **Diacritical Marks** | Often missing | **Preserved** | +100% |
+| **Qualitative Assessment** | Missing dấu | Full Vietnamese | Better |
 
 **Example:**
 - Input text: "Tiếng suối trong như tiếng hát xa"
@@ -52,19 +56,18 @@ Detailed benchmark results for **Offline Document OCR Extractor**.
 
 | Metric | PaddleOCR Only | VietOCR Hybrid | Recommendation |
 |--------|---------------|----------------|----------------|
-| **Character Accuracy** | 80% | 73% ⚠️ | Use `--no-vietocr` |
-| **Diacritical Marks** | 0% missing | 80% preserved | - |
-| **Word Error Rate** | 20% | 27% | - |
+| **Avg Confidence Score** | ~80% | ~73% ⚠️ | Use `--no-vietocr` |
+| **Qualitative Assessment** | Better | Worse | PaddleOCR-only recommended |
 
 **Note:** VietOCR model not optimized for classical serif fonts. PaddleOCR performs better in this case.
 
 ## Quality Mode Comparison
 
-| Mode | Image Size | Processing Time (GPU) | Accuracy | Use Case |
-|------|-----------|----------------------|----------|----------|
-| **Fast** | 960px max | **120ms** ⚡⚡⚡ | 90% | Quick previews |
-| **Balanced** | 1280px max | 250ms ⚡⚡ | 95% | **Default** |
-| **Accurate** | 1920px max | 450ms ⚡ | 97% | High-quality scans |
+| Mode | Image Size | Processing Time (GPU) | Avg Confidence | Use Case |
+|------|-----------|----------------------|----------------|----------|
+| **Fast** | 960px max | **120ms** ⚡⚡⚡ | ~90% | Quick previews |
+| **Balanced** | 1280px max | 250ms ⚡⚡ | ~95% | **Default** |
+| **Accurate** | 1920px max | 450ms ⚡ | ~97% | High-quality scans |
 
 ## Memory Usage
 
@@ -118,6 +121,8 @@ python benchmark.py --input data/input/ --device cuda --iterations 100
 ## Conclusion
 
 ✅ **GPU recommended** for production use (4.4x faster)  
-✅ **VietOCR hybrid** for modern Vietnamese fonts (+10% accuracy)  
+✅ **VietOCR hybrid** for modern Vietnamese fonts (+10% confidence improvement)  
 ⚠️ **PaddleOCR-only** (`--no-vietocr`) for classical serif fonts  
 ✅ **Balanced mode** optimal for most use cases  
+
+> **Note:** All accuracy/confidence numbers are model-reported scores. For production use, validate with your own Vietnamese ground-truth datasets.  

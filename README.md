@@ -9,7 +9,7 @@
 ![License](https://img.shields.io/badge/license-MIT-blue)
 ![GPU](https://img.shields.io/badge/CUDA-11.8%2B-76B900?logo=nvidia)
 
-**Professional OCR solution for Vietnamese & multilingual documents**
+**OCR solution for Vietnamese & multilingual documents (Work in Progress)**
 
 [Features](#-features) • [Demo](#-demo) • [Quick Start](#-quick-start) • [Benchmarks](#-benchmarks) • [Documentation](#-documentation)
 
@@ -33,7 +33,7 @@ https://private-user-images.githubusercontent.com/220441399/550176700-7092a8c9-2
 
 ## ✨ Features
 
-- 🇻🇳 **Vietnamese OCR** — VietOCR Transformer for accurate diacritical marks (dấu)
+- 🇻🇳 **Vietnamese OCR** — VietOCR Transformer for diacritical marks (dấu) *[Note: Accuracy varies by font type, see limitations below]*
 - 🚀 **Hybrid Pipeline** — PaddleOCR detection + VietOCR recognition
 - ⚡ **GPU Acceleration** — Automatic CPU fallback
 - 🎯 **3 Quality Modes** — Fast / Balanced / Accurate
@@ -41,7 +41,7 @@ https://private-user-images.githubusercontent.com/220441399/550176700-7092a8c9-2
 - 📦 **Bounding Boxes** — Visual annotation export
 - 🖥️ **Gradio Web UI** — Intuitive upload interface
 - 🐳 **Docker Ready** — CPU & GPU containers
-- 📊 **Benchmarked** — Tested on T4 GPU & CPU
+- 📊 **Benchmarked** — Performance testing on T4 GPU & CPU
 
 ---
 
@@ -141,19 +141,23 @@ docker compose --profile gpu up
 
 ### Performance Comparison
 
-| Device | Mode | Avg Time | Regions | Accuracy | VRAM |
-|--------|------|----------|---------|----------|------|
+| Device | Mode | Avg Time | Regions | Avg Confidence* | VRAM |
+|--------|------|----------|---------|-----------------|------|
 | **NVIDIA T4 (GPU)** | Balanced | **252ms** | 15 | **95%** | ~2GB |
 | **Intel i5 (CPU)** | Balanced | 1.1s | 11 | 96% | N/A |
 | **Speedup** | - | **4.4x faster** | - | - | - |
 
-### VietOCR vs PaddleOCR Accuracy (Vietnamese)
+*\*Confidence score from OCR model, not ground-truth accuracy. See [Known Limitations](#-known-limitations) for details.*
+
+### VietOCR vs PaddleOCR Confidence Comparison (Vietnamese)
+
+> **⚠️ Important:** Numbers below are **model confidence scores**, not ground-truth accuracy measurements.
 
 | Font Type | PaddleOCR | VietOCR Hybrid | Improvement |
 |-----------|-----------|----------------|-------------|
-| **Modern Sans-serif** (Arial, Roboto) | 85% ❌ Missing diacritics | **95%** ✅ | +10% |
-| **Classical Serif** (Times, Garamond) | 80% | **73%** | -7% (use `--no-vietocr`) |
-| **Handwriting** | 70% | **65%** | -5% (use `--no-vietocr`) |
+| **Modern Sans-serif** (Arial, Roboto) | ~85% conf. ❌ Missing diacritics | **~95% conf.** ✅ | +10% |
+| **Classical Serif** (Times, Garamond) | ~80% conf. | **~73% conf.** | -7% (use `--no-vietocr`) |
+| **Handwriting** | ~70% conf. | **~65% conf.** | -5% (use `--no-vietocr`) |
 
 ### Quality Modes
 
@@ -172,6 +176,32 @@ python benchmark.py --input data/input/ --device cpu
 # GPU vs CPU comparison
 python benchmark.py --input data/input/ --compare
 ```
+
+---
+
+## ⚠️ Known Limitations
+
+> **This project is a work in progress.** The following limitations are known and being addressed:
+
+### 1. **Accuracy Metrics**
+- The **95% "accuracy"** reported in benchmarks is actually the **average model confidence score**, not ground-truth accuracy measured against labeled data.
+- **No formal evaluation dataset** with Vietnamese ground-truth labels has been used yet.
+- **Recommendation:** Treat confidence scores as relative quality indicators, not absolute accuracy measurements.
+
+### 2. **Vietnamese OCR Quality**
+- **Modern sans-serif fonts** (Arial, Roboto): Works well with VietOCR, ~95% avg confidence
+- **Classical serif fonts** (Times, Garamond): VietOCR performs worse than PaddleOCR-only (use `--no-vietocr` flag)
+- **Handwritten text**: Not optimized, low confidence scores
+- **Complex layouts**: May struggle with multi-column documents or tables
+
+### 3. **Future Improvements Needed**
+- [ ] Build proper Vietnamese evaluation dataset with ground-truth labels
+- [ ] Measure true CER (Character Error Rate) and WER (Word Error Rate)
+- [ ] Fine-tune VietOCR on classical serif fonts
+- [ ] Add layout analysis for complex documents
+- [ ] Implement post-processing spell-check for Vietnamese
+
+**Contributions and feedback are welcome!** If you have Vietnamese ground-truth datasets or want to help improve accuracy, please open an issue.
 
 ---
 
